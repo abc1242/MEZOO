@@ -22,8 +22,9 @@ app.set('port', port);
 var server = http.createServer(app);
 
 //기성
-const webSocket = require("../routes/webSocket")
+const webSocket = require("../routes/webSocket");
 webSocket(server);
+//
 
 
 
