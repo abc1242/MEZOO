@@ -12,7 +12,7 @@ var http = require('http');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT );
 app.set('port', port);
 
 /**
@@ -23,7 +23,7 @@ var server = http.createServer(app);
 
 //기성
 const webSocket = require("../routes/webSocket");
-webSocket(server);
+// webSocket(server);
 //
 
 
