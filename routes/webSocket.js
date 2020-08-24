@@ -7,22 +7,19 @@ let writer = fs.createWriteStream('test.txt');
 
 // module.exports = function(_server)
 // {
-const wss = new WebSocket.Server( {port: 4000} );
+const wss = new WebSocket.Server( {port: 3000} );
 CLIENTS=[];
 
 
-wss.on('connection', function(ws){
+wss.on('connection', function(ws, req){
     CLIENTS.push(ws);
-    
 
-    console.log('새연결')
-
-    
     ws.on('message', function(message){
-        console.log('메세지' +message); 
-        //writer.write(message+'\n'); //데이터 -> txt
+        //console.log('메세지' +message); 
+        writer.write(message+'\n'); //데이터 -> txt
         for (var i =0; i<CLIENTS.length;i++){
             CLIENTS[i].send(message);
+            console.log(message)    
         }
         //ws.send(message);
     });
