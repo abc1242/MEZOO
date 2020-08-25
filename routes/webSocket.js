@@ -9,17 +9,25 @@ let writer = fs.createWriteStream('test.txt');
 // {
 const wss = new WebSocket.Server( {port: 3000} );
 CLIENTS=[];
-
+APP=[];
 
 wss.on('connection', function(ws, req){
-    CLIENTS.push(ws);
-
+    console.log('req.headers.header' +req.headers.header)
+    if (req.headers.header =="app") {  
+        APP.push(ws);
+        console.log('app연결')
+    } else {
+        CLIENTS.push(ws); 
+        console.log('client연결')
+    }
+    
     ws.on('message', function(message){
         //console.log('메세지' +message); 
         writer.write(message+'\n'); //데이터 -> txt
         for (var i =0; i<CLIENTS.length;i++){
             CLIENTS[i].send(message);
-            console.log(message)    
+            //APP[i].send(message);
+            //console.log(message)    
         }
         //ws.send(message);
     });
@@ -30,9 +38,9 @@ wss.on('connection', function(ws, req){
 
     // ws.on('close', function(){
     //     console.log("연결 끝");
-    // })
+    // })     
 
-            
+    
 });
 
 
