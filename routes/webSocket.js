@@ -3,6 +3,7 @@ const WebSocket = require("ws");
 var Client = require('mongodb').MongoClient;//db추가
 //let fs = require('fs');
 const { WSAEWOULDBLOCK } = require("constants");
+const { brotliDecompress } = require("zlib");
 //let writer = fs.createWriteStream('test.txt');
 
 // module.exports = function(_server)
@@ -12,6 +13,8 @@ CLIENTS=[];
 APP=[];
 
 var dbms;
+var history;
+
 wss.on('connection', function(ws, req){
     console.log('서버연결')
     Client.connect('mongodb://localhost:27017', function(error, client){
@@ -19,10 +22,8 @@ wss.on('connection', function(ws, req){
             console.log(error);
         } else {
             console.log('db연결');
-            var db = client.db('MEZOO');
-            
+            var dbo = client.db('MEZOO');
 
-            //console.log('req.headers.header' +req.headers.header)
             if (req.headers.header =="app") {  
                 APP.push(ws);
                 console.log('app연결')
@@ -33,19 +34,27 @@ wss.on('connection', function(ws, req){
             }
             
             ws.on('message', function(message){
-                console.log('메세지' +message);
-                dbms =JSON.parse(message)
-                db.collection('HiCardi').insert(dbms); 
-                console.log('db전송완료')
-                //writer.write(message+'\n'); //데이터 -> txt
-                for (var i =0; i<CLIENTS.length;i++){
-                    CLIENTS[i].send(message);
-                    //APP[i].send(message);
-                    //console.log(message)    
-                }
-                //ws.send(message);
+                var x = message.split('-');
+                if(x[0]=='history'){
+                    var inputnumber = 
+                    dbo.collection("HiCardi").find({DeviceNumber:  x[1] }).toArray(function(err, result) {
+                    if (err) throw err;
+                        CLIENTS.send(result);   //history 전송
+                    });
+                } else {
+ 
+                    dbms =JSON.parse(message);
+                    dbo.collection('HiCardi').insert(dbms);                  
+                    console.log('db전송완료')
+                    //writer.write(message+'\n'); //데이터 -> txt
+                    for (var i =0; i<CLIENTS.length;i++){
+                        CLIENTS[i].send(message);
+                        //APP[i].send(message);
+                        //console.log(message)  
+                    }  
+               }
             });
-        
+
             // ws.on('error', function(error){
             //     console.log("에러" + error);
             // })
