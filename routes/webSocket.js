@@ -27,32 +27,69 @@ wss.on('connection', function(ws, req){
             if (req.headers.header =="app") {  
                 APP.push(ws);
                 console.log('app연결')
+
             } else {
                 CLIENTS.push(ws); 
                 console.log('client연결')
-               
+
+
+
+                dbo.collection("HiCardi").find({DeviceNumber: '00102' }).toArray(function(err, result) {
+                    message = JSON.stringify(result);
+                    
+                    
+                    for (var i =0; i<CLIENTS.length;i++){
+                        CLIENTS[i].send(message);
+ 
+                    }
+
+                 });
+
             }
             
             ws.on('message', function(message){
-                var x = message.split('-');
-                if(x[0]=='history'){
-                    var inputnumber = 
-                    dbo.collection("HiCardi").find({DeviceNumber:  x[1] }).toArray(function(err, result) {
-                    if (err) throw err;
-                        CLIENTS.send(result);   //history 전송
-                    });
-                } else {
+
+
+                // for (var i =0; i<CLIENTS.length;i++){
+                //     CLIENTS[i].send(message);
+                // }
+
+
+
+
+
+                // }
+
+
+                    
+                //     console.log(result) 
+                // }) 
+            //     var x = message.split('-');
+            //     if(x[0]=='history'){
+            //         var inputnumber = 
+            //         dbo.collection("HiCardi").find({DeviceNumber:  x[1] }).toArray(function(err, result) {
+            //         if (err) throw err;
+            //             CLIENTS.send(result);   //history 전송
+            //         });
+            //     } else {
  
-                    dbms =JSON.parse(message);
-                    dbo.collection('HiCardi').insert(dbms);                  
-                    console.log('db전송완료')
-                    //writer.write(message+'\n'); //데이터 -> txt
-                    for (var i =0; i<CLIENTS.length;i++){
-                        CLIENTS[i].send(message);
-                        //APP[i].send(message);
-                        //console.log(message)  
-                    }  
-               }
+
+
+
+                    // dbms =JSON.parse(message);
+                    // dbo.collection('HiCardi').insertOne(dbms,function(err,res){
+                    //     if (err) throw err;
+                    //     console.log('db전송완료')
+                    //     db.close();
+                    // });                  
+                    
+            //         //writer.write(message+'\n'); //데이터 -> txt
+            //         for (var i =0; i<CLIENTS.length;i++){
+            //             CLIENTS[i].send(message);
+            //             //APP[i].send(message);
+            //             //console.log(message)  
+            //         }  
+            //    }
             });
 
             // ws.on('error', function(error){
