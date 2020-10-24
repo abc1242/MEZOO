@@ -1,10 +1,11 @@
 
 const WebSocket = require("ws");
 var Client = require('mongodb').MongoClient;//db추가
-//let fs = require('fs');
+
 const { WSAEWOULDBLOCK } = require("constants");
 const { brotliDecompress } = require("zlib");
-//let writer = fs.createWriteStream('test.txt');
+const { type } = require("os");
+
 
 // module.exports = function(_server)
 // {
@@ -32,64 +33,46 @@ wss.on('connection', function(ws, req){
                 CLIENTS.push(ws); 
                 console.log('client연결')
 
-
-
-                dbo.collection("HiCardi").find({DeviceNumber: '00102' }).toArray(function(err, result) {
-                    message = JSON.stringify(result);
-                    
-                    
-                    for (var i =0; i<CLIENTS.length;i++){
-                        CLIENTS[i].send(message);
- 
-                    }
-
-                 });
-
             }
             
             ws.on('message', function(message){
 
+                jsonmessage =JSON.parse(message);
 
-                // for (var i =0; i<CLIENTS.length;i++){
-                //     CLIENTS[i].send(message);
-                // }
-
-
-
-
-
-                // }
-
-
+                if( jsonmessage.message == "history"){  //history 버튼 클릭
+                    console.log('history');
                     
-                //     console.log(result) 
-                // }) 
-            //     var x = message.split('-');
-            //     if(x[0]=='history'){
-            //         var inputnumber = 
-            //         dbo.collection("HiCardi").find({DeviceNumber:  x[1] }).toArray(function(err, result) {
-            //         if (err) throw err;
-            //             CLIENTS.send(result);   //history 전송
-            //         });
-            //     } else {
+                    dbo.collection('HiCardi').distinct("DeviceNumber").then(function(result){
+                        list = result;
+                        message = JSON.stringify(result);
+                        
+                        for (var i =0; i<CLIENTS.length;i++){
+                            CLIENTS[i].send(message);     
+                        }
+                    })
+
+                } else if(jsonmessage.message.length==5){   //길이가 5자리 ex)00101
+                    console.log('00101history')
+                    dbo.collection("HiCardi").find({DeviceNumber: jsonmessage.message }).toArray(function(err, result) {
+                        message = JSON.stringify(result);
+                        
+                        for (var i =0; i<CLIENTS.length;i++){
+                            CLIENTS[i].send(message);
+                        }
+                    });
+
+                } else {
  
-
-
-
-                    // dbms =JSON.parse(message);
-                    // dbo.collection('HiCardi').insertOne(dbms,function(err,res){
-                    //     if (err) throw err;
-                    //     console.log('db전송완료')
-                    //     db.close();
-                    // });                  
+                    dbo.collection('HiCardi').insertOne(jsonmessage,function(err,res){
+                        if (err) throw err;
+                        console.log('db전송완료')
+                        db.close();
+                    });                  
                     
-            //         //writer.write(message+'\n'); //데이터 -> txt
-            //         for (var i =0; i<CLIENTS.length;i++){
-            //             CLIENTS[i].send(message);
-            //             //APP[i].send(message);
-            //             //console.log(message)  
-            //         }  
-            //    }
+                    for (var i =0; i<CLIENTS.length;i++){
+                        CLIENTS[i].send(message);
+                    }  
+               }
             });
 
             // ws.on('error', function(error){
