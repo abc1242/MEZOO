@@ -15,7 +15,7 @@ APP=[];
 
 var dbms;
 var history;
-
+var viewHistory = false;
 wss.on('connection', function(ws, req){
     console.log('서버연결')
     Client.connect('mongodb://localhost:27017', function(error, client){
@@ -36,12 +36,14 @@ wss.on('connection', function(ws, req){
             }
             
             ws.on('message', function(message){
-
+                
                 jsonmessage =JSON.parse(message);
 
-                if( jsonmessage.message == "history"){  //history 버튼 클릭
-                    console.log('history');
-                    
+                if( jsonmessage.message && (jsonmessage.message == "history")){  //history 버튼 클릭
+                    console.log(jsonmessage.message);
+                    viewHistory = true;
+
+
                     dbo.collection('HiCardi').distinct("DeviceNumber").then(function(result){
                         list = result;
                         message = JSON.stringify(result);
@@ -51,8 +53,8 @@ wss.on('connection', function(ws, req){
                         }
                     })
 
-                } else if(jsonmessage.message.length==5){   //길이가 5자리 ex)00101
-                    console.log('00101history')
+                } else if(jsonmessage.message&&(jsonmessage.message.length == 5)){   //길이가 5자리 ex)00101
+                    console.log(jsonmessage.message)
                     dbo.collection("HiCardi").find({DeviceNumber: jsonmessage.message }).toArray(function(err, result) {
                         message = JSON.stringify(result);
                         
@@ -61,17 +63,22 @@ wss.on('connection', function(ws, req){
                         }
                     });
 
+                } else if(jsonmessage.message && (jsonmessage.message == "monitor")){
+                        console.log(jsonmessage.message);
+                        viewHistory=false;
                 } else {
  
                     dbo.collection('HiCardi').insertOne(jsonmessage,function(err,res){
                         if (err) throw err;
                         console.log('db전송완료')
-                        db.close();
+                        // db.close();
                     });                  
-                    
-                    for (var i =0; i<CLIENTS.length;i++){
-                        CLIENTS[i].send(message);
-                    }  
+                    if(viewHistory == false){
+                        console.log('끄긱ㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱㄱ')
+                        for (var i =0; i<CLIENTS.length;i++){
+                            CLIENTS[i].send(message);
+                        }  
+                    }
                }
             });
 
